@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.HashMap;
 
-public final class BeanCollectionTest {
+public final class DependencyCollectionTest {
 
     @Test
     public void testDsl() {
@@ -20,8 +20,7 @@ public final class BeanCollectionTest {
             final var service = resolver.resolveRequired(IA.class);
 
             Assert.assertEquals("I am A", service.print());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -39,8 +38,7 @@ public final class BeanCollectionTest {
             for (int i = 0; i < 1000000; i++) {
                 resolver.resolveRequired(IA.class);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
