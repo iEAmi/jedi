@@ -1,37 +1,49 @@
 package com.ieami.jedi.core;
 
-import com.ieami.jedi.dsl.Abstraction;
-
-import static com.ieami.jedi.dsl.Abstraction.abstraction;
+import org.junit.Assert;
+import org.junit.Test;
 
 public final class BeanCollectionTest {
 
+    @Test
     public void testDsl() {
-        final var beanCollection = createBeanCollection();
-        final var f = abstraction(IService.class)
-                .implementedBy(Service.class)
-                .asSingleton();
+        final var beanCollection = new ReflectionDependencyCollection();
+        beanCollection
+                .addSingleton(IA.class, A.class)
+                .addSingleton(IB.class, B.class);
 
-        beanCollection.addSingleton(IService.class, Service.class);
+        try {
+            final var resolver = beanCollection.build();
+            final var service = resolver.resolveRequired(IA.class);
 
-//        abstraction(IService.class).implementedBy(Service.class).asSingleton();
-//        abstraction(IService.class)
-//                .implementedBy(Service.class)
-//                .decorateWith(ServiceMetricDecorator.class)
-//                .asSingleton();
-
+            Assert.assertEquals("I am A", service.print());
+        }
+        catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
-    public interface IService { }
+    public interface IA {
 
-    public static class Service implements IService { }
-
-    public static class ServiceMetricDecorator implements IService {
-
+        String print();
     }
 
+    public static class A implements IA {
+        private final IB b;
 
-    private DependencyCollection createBeanCollection() {
-        return null;
+        public A(IB b) {
+            this.b = b;
+        }
+
+        @Override
+        public String print() {
+            return "I am A";
+        }
+    }
+
+    public interface IB {
+    }
+
+    public static class B implements IB {
     }
 }

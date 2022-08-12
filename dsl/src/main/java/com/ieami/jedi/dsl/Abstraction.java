@@ -19,6 +19,10 @@ public final class Abstraction<I> {
         return new Implementation.Default<>(implementationClass, this);
     }
 
+    public @NotNull Class<I> getAbstractionClass() {
+        return clazz;
+    }
+
     @Override
     public String toString() {
         return this.clazz.getSimpleName();
