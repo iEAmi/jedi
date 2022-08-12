@@ -1,18 +1,24 @@
 package com.ieami.jedi.core;
 
+import com.ieami.jedi.dsl.Abstraction;
+
+import static com.ieami.jedi.dsl.Abstraction.abstraction;
+
 public final class BeanCollectionTest {
 
     public void testDsl() {
         final var beanCollection = createBeanCollection();
-        beanCollection
-                .addSingleton(IService.class, Service.class)
-                .addSingleton(IService.class, Service.class);
-
-        abstraction(IService.class).implementedBy(Service.class).asSingleton();
-        abstraction(IService.class)
+        final var f = abstraction(IService.class)
                 .implementedBy(Service.class)
-                .decorateWith(ServiceMetricDecorator.class)
                 .asSingleton();
+
+        beanCollection.addSingleton(IService.class, Service.class);
+
+//        abstraction(IService.class).implementedBy(Service.class).asSingleton();
+//        abstraction(IService.class)
+//                .implementedBy(Service.class)
+//                .decorateWith(ServiceMetricDecorator.class)
+//                .asSingleton();
 
     }
 
@@ -25,7 +31,7 @@ public final class BeanCollectionTest {
     }
 
 
-    private BeanCollection createBeanCollection() {
+    private DependencyCollection createBeanCollection() {
         return null;
     }
 }

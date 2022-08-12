@@ -9,19 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.ieami.jedi.core</groupId>
-    <artifactId>core</artifactId>
+    <groupId>com.ieami.jedi.dsl</groupId>
+    <artifactId>dsl</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.ieami.jedi.dsl</groupId>
-            <artifactId>dsl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>
