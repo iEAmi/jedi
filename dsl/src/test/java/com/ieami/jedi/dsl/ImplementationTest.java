@@ -27,7 +27,7 @@ public final class ImplementationTest {
     }
 
     @Test
-    public void implementationClass_method_returns_instance_as_gets_from_constructor() {
+    public void implementationClass_method_returns_instance_same_as_gets_from_constructor() {
         final var expectedImplementationClass = TestServiceImpl.class;
 
         final var abstraction = Abstraction.abstraction(TestService.class);
@@ -37,7 +37,7 @@ public final class ImplementationTest {
     }
 
     @Test
-    public void abstraction_method_returns_instance_as_gets_from_constructor() {
+    public void abstraction_method_returns_instance_same_as_gets_from_constructor() {
         final var expectedAbstraction = Abstraction.abstraction(TestService.class);
         final var implementation =  new Implementation.Default<>(TestServiceImpl.class, expectedAbstraction);
 

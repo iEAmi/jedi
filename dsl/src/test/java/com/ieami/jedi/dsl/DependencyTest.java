@@ -29,7 +29,7 @@ public final class DependencyTest {
     }
 
     @Test
-    public void singleton_implementation_method_returns_instance_as_gets_from_constructor() {
+    public void singleton_implementation_method_returns_same_instance_as_gets_from_constructor() {
         final var abstraction = abstraction(TestService.class);
         final var expectedImplementation = new Implementation.Default<>(TestServiceImpl.class, abstraction);
 
@@ -40,7 +40,7 @@ public final class DependencyTest {
     }
 
     @Test
-    public void transient_implementation_method_returns_instance_as_gets_from_constructor() {
+    public void transient_implementation_method_returns_same_instance_as_gets_from_constructor() {
         final var abstraction = abstraction(TestService.class);
         final var expectedImplementation = new Implementation.Default<>(TestServiceImpl.class, abstraction);
 
