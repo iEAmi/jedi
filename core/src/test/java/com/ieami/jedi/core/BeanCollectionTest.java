@@ -3,6 +3,9 @@ package com.ieami.jedi.core;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
+import java.util.HashMap;
+
 public final class BeanCollectionTest {
 
     @Test
@@ -20,6 +23,40 @@ public final class BeanCollectionTest {
         }
         catch (Exception e) {
             Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void duration() {
+        final var beanCollection = new ReflectionDependencyCollection();
+        beanCollection
+                .addSingleton(IA.class, A.class)
+                .addSingleton(IB.class, B.class);
+
+        try {
+            final var resolver = beanCollection.build();
+
+            for (int i = 0; i < 1000000; i++) {
+                resolver.resolveRequired(IA.class);
+            }
+        }
+        catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void mapGetDuration() {
+        final var map = new HashMap<String, A>();
+
+        for (int i = 0; i < 1000000; i++) {
+            final var t1 = System.nanoTime();
+
+            map.get("");
+
+            final var t2 = System.nanoTime();
+            final var duration = Duration.ofNanos(t2 - t1);
+            System.out.println(duration.toNanos());
         }
     }
 

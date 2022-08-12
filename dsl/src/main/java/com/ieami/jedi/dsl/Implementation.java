@@ -17,6 +17,10 @@ public interface Implementation<I, Impl extends I> {
         return new Dependency.Singleton<>(this);
     }
 
+    default @NotNull Dependency<I, Impl> asTransient() {
+        return new Dependency.Transient<>(this);
+    }
+
     final class Default<I, Impl extends I> implements Implementation<I, Impl> {
         private final @NotNull Class<Impl> implementationClass;
         private final @NotNull Abstraction<I> abstraction;

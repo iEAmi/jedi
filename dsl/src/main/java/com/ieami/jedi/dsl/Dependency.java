@@ -32,4 +32,22 @@ public interface Dependency<I, Impl extends I> {
             return "Singleton instance of (" + this.implementation + ")";
         }
     }
+
+    final class Transient<I, Impl extends I> implements Dependency<I, Impl> {
+        private final @NotNull Implementation<I, Impl> implementation;
+
+        public Transient(@NotNull Implementation<I, Impl> implementation) {
+            this.implementation = Objects.requireNonNull(implementation, "implementation");
+        }
+
+        @Override
+        public @NotNull Implementation<I, Impl> implementation() {
+            return this.implementation;
+        }
+
+        @Override
+        public String toString() {
+            return "Transient instance of (" + this.implementation + ")";
+        }
+    }
 }
