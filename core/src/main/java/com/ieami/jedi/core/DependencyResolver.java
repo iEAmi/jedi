@@ -18,7 +18,7 @@ public interface DependencyResolver {
         return instance;
     }
 
-    default <I> @Nullable Optional<I> resolveOptional(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    default <I> @NotNull Optional<I> resolveOptional(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         final var instance = resolve(abstractionClass);
         return Optional.ofNullable(instance);
     }

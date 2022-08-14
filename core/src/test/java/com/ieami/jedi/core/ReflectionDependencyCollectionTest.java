@@ -20,6 +20,9 @@ public final class ReflectionDependencyCollectionTest {
     private static class TestServiceProtectedConstructorImpl implements TestService {
         protected TestServiceProtectedConstructorImpl(Integer a) {}
     }
+    private static class TestServiceUnknownConstructorArgumentImpl implements TestService {
+        public TestServiceUnknownConstructorArgumentImpl(Integer a) {}
+    }
     private static class TestServiceImpl implements TestService {}
 
     @Test
@@ -79,5 +82,15 @@ public final class ReflectionDependencyCollectionTest {
         final ThrowingRunnable runnableToTest = depCollection::build;
 
         Assert.assertThrows(PrivateOrProtectedConstructorException.class, runnableToTest);
+    }
+
+    @Test
+    public void build_rejects_implementation_with_unknown_argument() {
+        final var depCollection = new ReflectionDependencyCollection();
+        depCollection.addSingleton(TestService.class, TestServiceUnknownConstructorArgumentImpl.class);
+
+        final ThrowingRunnable runnableToTest = depCollection::build;
+
+        Assert.assertThrows(UnknownDependencyException.class, runnableToTest);
     }
 }
