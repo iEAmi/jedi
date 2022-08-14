@@ -33,8 +33,8 @@ public final class DependencyCollectionTest {
     public void testDsl() {
         final var beanCollection = new ReflectionDependencyCollection();
         beanCollection
-                .addSingleton(IA.class, A.class)
-                .addSingleton(IB.class, B.class);
+                .addTransient(IA.class, A.class)
+                .addTransient(IB.class, B.class);
 
         try {
             final var resolver = beanCollection.build();

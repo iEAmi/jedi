@@ -37,7 +37,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_interface_implementation() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServiceInterfaceImpl.class);
+        depCollection.addTransient(TestService.class, TestServiceInterfaceImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 
@@ -47,7 +47,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_abstract_class_implementation() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServiceAbstractImpl.class);
+        depCollection.addTransient(TestService.class, TestServiceAbstractImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 
@@ -57,7 +57,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_class_with_more_than_one_constructor() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServiceTwoConstructorImpl.class);
+        depCollection.addTransient(TestService.class, TestServiceTwoConstructorImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 
@@ -67,7 +67,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_class_with_private_constructor() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServicePrivateConstructorImpl.class);
+        depCollection.addTransient(TestService.class, TestServicePrivateConstructorImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 
@@ -77,7 +77,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_class_with_protected_constructor() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServiceProtectedConstructorImpl.class);
+        depCollection.addTransient(TestService.class, TestServiceProtectedConstructorImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 
@@ -87,7 +87,7 @@ public final class ReflectionDependencyCollectionTest {
     @Test
     public void build_rejects_implementation_with_unknown_argument() {
         final var depCollection = new ReflectionDependencyCollection();
-        depCollection.addSingleton(TestService.class, TestServiceUnknownConstructorArgumentImpl.class);
+        depCollection.addTransient(TestService.class, TestServiceUnknownConstructorArgumentImpl.class);
 
         final ThrowingRunnable runnableToTest = depCollection::build;
 

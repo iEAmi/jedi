@@ -11,13 +11,13 @@ public interface DependencyCollection {
 
     @NotNull DependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException;
 
-    default <I, Impl extends I> @NotNull DependencyCollection addSingleton(
+    default <I, Impl extends I> @NotNull DependencyCollection addTransient(
             @NotNull Class<I> abstractionClass,
             @NotNull Class<Impl> implementationClass
     ) {
         final var dependency =  Abstraction.abstraction(abstractionClass)
                 .implementedBy(implementationClass)
-                .asSingleton();
+                .asTransient();
 
         return addDependency(dependency);
     }
