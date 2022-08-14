@@ -28,15 +28,6 @@ public final class ReflectionDependencyResolver implements DependencyResolver {
         return instanceFactory.create();
     }
 
-    @Override
-    public <I> @NotNull I resolveRequired(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        final var instance = resolve(abstractionClass);
-        if (instance == null)
-            throw new IllegalStateException(abstractionClass.getCanonicalName() + " is not registered as dependency");
-
-        return instance;
-    }
-
     private @NotNull InstanceFactory createInstanceFactory(Dependency<?, ?> dependency) {
         final var implementationClass = dependency.implementationClass();
         final var constructor = implementationClass.getConstructors()[0];
