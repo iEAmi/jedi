@@ -3,6 +3,7 @@ package com.ieami.jedi.dsl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class Abstraction<I> {
     private final @NotNull Class<I> clazz;
@@ -16,7 +17,13 @@ public final class Abstraction<I> {
     }
 
     public <Impl extends I> @NotNull Implementation<I, Impl> implementedBy(@NotNull Class<Impl> implementationClass) {
-        return new Implementation.Default<>(implementationClass, this);
+        return new Implementation.ClassReference.Default<>(implementationClass, this);
+    }
+
+    public <Impl extends I> @NotNull Implementation<I, Impl> instantiateUsing(
+            @NotNull Function<DependencyResolver, Impl> instantiator
+    ) {
+        return new Implementation.FunctionReference.Default<>(this, instantiator);
     }
 
     public @NotNull Class<I> getAbstractionClass() {
