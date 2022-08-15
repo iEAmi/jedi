@@ -4,8 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 
-public final class ImplementationTest {
-
+public final class DefaultClassReferenceImplementationTest {
     private interface TestService {
     }
 
@@ -14,14 +13,14 @@ public final class ImplementationTest {
 
     @Test
     public void default_implementation_rejects_null_implementationClass_argument() {
-        final ThrowingRunnable runnableToTest = () -> new Implementation.Default<TestService, TestServiceImpl>(null, null);
+        final ThrowingRunnable runnableToTest = () -> new Implementation.ClassReference.Default<TestService, TestServiceImpl>(null, null);
 
         Assert.assertThrows(IllegalArgumentException.class, runnableToTest);
     }
 
     @Test
     public void default_implementation_rejects_null_abstraction_argument() {
-        final ThrowingRunnable runnableToTest = () -> new Implementation.Default<>(TestServiceImpl.class, null);
+        final ThrowingRunnable runnableToTest = () -> new Implementation.ClassReference.Default<>(TestServiceImpl.class, null);
 
         Assert.assertThrows(IllegalArgumentException.class, runnableToTest);
     }
@@ -31,7 +30,7 @@ public final class ImplementationTest {
         final var expectedImplementationClass = TestServiceImpl.class;
 
         final var abstraction = Abstraction.abstraction(TestService.class);
-        final var implementation =  new Implementation.Default<>(expectedImplementationClass, abstraction);
+        final var implementation =  new Implementation.ClassReference.Default<>(expectedImplementationClass, abstraction);
 
         Assert.assertEquals(expectedImplementationClass, implementation.implementationClass());
     }
@@ -39,7 +38,7 @@ public final class ImplementationTest {
     @Test
     public void abstraction_method_returns_instance_same_as_gets_from_constructor() {
         final var expectedAbstraction = Abstraction.abstraction(TestService.class);
-        final var implementation =  new Implementation.Default<>(TestServiceImpl.class, expectedAbstraction);
+        final var implementation =  new Implementation.ClassReference.Default<>(TestServiceImpl.class, expectedAbstraction);
 
         Assert.assertEquals(expectedAbstraction, implementation.abstraction());
     }

@@ -2,6 +2,7 @@ package com.ieami.jedi.core;
 
 import com.ieami.jedi.core.exception.*;
 import com.ieami.jedi.dsl.Dependency;
+import com.ieami.jedi.dsl.Implementation;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
@@ -9,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public final class ReflectionDependencyCollection implements DependencyCollection {
+public final class MapBasedDependencyCollection implements DependencyCollection {
     private final Map<Class<?>, Dependency<?, ?>> dependencyMap = new HashMap<>();
 
     @Override
@@ -22,25 +23,35 @@ public final class ReflectionDependencyCollection implements DependencyCollectio
     }
 
     @Override
-    public @NotNull DependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException {
-        checkConstructors();
-        return new ReflectionDependencyResolver(dependencyMap);
-    }
-
-    private void checkConstructors()
-            throws AbstractImplementationException, InterfaceImplementationException, MoreThanOneConstructorException, UnknownDependencyException, PrivateOrProtectedConstructorException {
+    public @NotNull ExtendedDependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException {
         final var dependencyList = dependencyMap.values();
 
         for (final var dependency : dependencyList) {
             final var implementation = dependency.implementation();
-            final var implementationClass = implementation.implementationClass();
 
-            guardAgainstInterfaceImplementation(implementationClass);
-            guardAgainstAbstractClassImplementation(implementationClass);
-            guardAgainstClassWithMoreThanOneConstructor(implementationClass);
-            guardAgainstImplementationClassWithNonPublicConstructor(implementationClass);
-            guardAgainstClassesWithUnknownArgument(implementationClass);
+            if (implementation instanceof Implementation.ClassReference)
+                validateClassReferenceImplementations((Implementation.ClassReference<?, ?>) implementation);
+            else if (implementation instanceof Implementation.FunctionReference)
+                validateFunctionReferenceImplementations((Implementation.FunctionReference<?, ?>) implementation);
+
         }
+
+        return new ReflectionExtendedDependencyResolver(dependencyMap);
+    }
+
+    private void validateFunctionReferenceImplementations(@NotNull Implementation.FunctionReference<?, ?> implementation) {
+        // TODO
+    }
+
+    private void validateClassReferenceImplementations(@NotNull Implementation.ClassReference<?, ?> implementation)
+            throws AbstractImplementationException, InterfaceImplementationException, MoreThanOneConstructorException, UnknownDependencyException, PrivateOrProtectedConstructorException {
+        final var implementationClass = implementation.implementationClass();
+
+        guardAgainstInterfaceImplementation(implementationClass);
+        guardAgainstAbstractClassImplementation(implementationClass);
+        guardAgainstClassWithMoreThanOneConstructor(implementationClass);
+        guardAgainstImplementationClassWithNonPublicConstructor(implementationClass);
+        guardAgainstClassesWithUnknownArgument(implementationClass);
     }
 
     private void guardAgainstInterfaceImplementation(
@@ -82,7 +93,9 @@ public final class ReflectionDependencyCollection implements DependencyCollectio
         }
     }
 
-    private void guardAgainstImplementationClassWithNonPublicConstructor(@NotNull Class<?> implementationClass) throws PrivateOrProtectedConstructorException {
+    private void guardAgainstImplementationClassWithNonPublicConstructor(
+            @NotNull Class<?> implementationClass
+    ) throws PrivateOrProtectedConstructorException {
         final var constructors = implementationClass.getConstructors();
 
         if (constructors.length == 0)

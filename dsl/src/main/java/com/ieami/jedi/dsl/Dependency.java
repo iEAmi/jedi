@@ -11,10 +11,6 @@ public interface Dependency<I, Impl extends I> {
         return implementation().abstraction().getAbstractionClass();
     }
 
-    default @NotNull Class<Impl> implementationClass() {
-        return implementation().implementationClass();
-    }
-
     final class Singleton<I, Impl extends I> implements Dependency<I, Impl> {
         private final @NotNull Implementation<I, Impl> implementation;
 

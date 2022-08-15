@@ -4,14 +4,19 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 
-public final class ReflectionDependencyResolverTest {
+public final class ReflectionExtendedDependencyResolverTest {
 
-    private interface TestRepository {}
-    private static class TestRepositoryImpl implements TestRepository {
-        public TestRepositoryImpl(){}
+    private interface TestRepository {
     }
 
-    private interface TestService {}
+    private static class TestRepositoryImpl implements TestRepository {
+        public TestRepositoryImpl() {
+        }
+    }
+
+    private interface TestService {
+    }
+
     private static class TestServiceImpl implements TestService {
         private final TestRepository repository;
 
@@ -21,8 +26,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolve_returns_null_for_unregister_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolve_returns_null_for_unregister_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
 
         try {
             final var depResolver = depCollection.build();
@@ -36,8 +41,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolveRequired_throws_IllegalStateException_unregister_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolveRequired_throws_IllegalStateException_unregister_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
 
         try {
             final var depResolver = depCollection.build();
@@ -51,8 +56,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolveOptional_returns_empty_Optional_unregister_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolveOptional_returns_empty_Optional_unregister_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
 
         try {
             final var depResolver = depCollection.build();
@@ -66,8 +71,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolve_returns_instance_for_registered_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolve_returns_instance_for_registered_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
         depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
         depCollection.addTransient(TestService.class, TestServiceImpl.class);
 
@@ -83,8 +88,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolveRequired_returns_instance_for_registered_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolveRequired_returns_instance_for_registered_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
         depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
         depCollection.addTransient(TestService.class, TestServiceImpl.class);
 
@@ -100,8 +105,8 @@ public final class ReflectionDependencyResolverTest {
     }
 
     @Test
-    public void resolveOptional_returns_not_empty_optional_for_registered_abstraction() {
-        final var depCollection = new ReflectionDependencyCollection();
+    public void resolveOptional_returns_not_empty_optional_for_registered_classReference_abstraction() {
+        final var depCollection = new MapBasedDependencyCollection();
         depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
         depCollection.addTransient(TestService.class, TestServiceImpl.class);
 
@@ -118,7 +123,7 @@ public final class ReflectionDependencyResolverTest {
 
     @Test
     public void resolve_not_supports_implicit_service_resolving() {
-        final var depCollection = new ReflectionDependencyCollection();
+        final var depCollection = new MapBasedDependencyCollection();
         depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
         depCollection.addTransient(TestService.class, TestServiceImpl.class);
 
@@ -128,6 +133,26 @@ public final class ReflectionDependencyResolverTest {
             final var instance = depResolver.resolve(TestServiceImpl.class);
 
             Assert.assertNull(instance);
+        } catch (Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void resolve_returns_instance_for_registered_funcReference_abstraction() {
+        final var depCollection = DependencyCollection.newDefault();
+        depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
+        depCollection.addTransient(TestService.class, dependencyResolver -> {
+            final var repository = dependencyResolver.resolveRequiredUnsafe(TestRepository.class);
+            return new TestServiceImpl(repository);
+        });
+
+        try {
+            final var depResolver = depCollection.build();
+
+            final var instance = depResolver.resolveOptional(TestService.class);
+
+            Assert.assertFalse(instance.isEmpty());
         } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
