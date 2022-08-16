@@ -1,6 +1,7 @@
 package com.ieami.jedi.dsl;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -46,19 +47,19 @@ public interface Implementation<I, Impl extends I> {
     }
 
     interface FunctionReference<I, Impl extends I> extends Implementation<I, Impl> {
-        @NotNull Function<DependencyResolver, Impl> instantiator();
+        @NotNull Function<@NotNull DependencyResolver, Impl> instantiator();
 
         final class Default<I, Impl extends I> implements FunctionReference<I, Impl> {
             private final @NotNull Abstraction<I> abstraction;
-            private final @NotNull Function<DependencyResolver, Impl> instantiator;
+            private final @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator;
 
-            Default(@NotNull Abstraction<I> abstraction, @NotNull Function<DependencyResolver, Impl> instantiator) {
+            Default(@NotNull Abstraction<I> abstraction, @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator) {
                 this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
                 this.instantiator = Objects.requireNonNull(instantiator, "instantiator");
             }
 
             @Override
-            public @NotNull Function<DependencyResolver, Impl> instantiator() {
+            public @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator() {
                 return instantiator;
             }
 

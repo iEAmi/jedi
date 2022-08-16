@@ -11,6 +11,8 @@
     <modules>
         <module>core</module>
         <module>dsl</module>
+        <module>extension-config</module>
+        <module>extension-config-json</module>
     </modules>
 
     <properties>

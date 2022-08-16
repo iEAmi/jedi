@@ -2,16 +2,18 @@ package com.ieami.jedi.core;
 
 import com.ieami.jedi.core.exception.*;
 import com.ieami.jedi.dsl.Dependency;
+import com.ieami.jedi.dsl.DependencyResolver;
 import com.ieami.jedi.dsl.Implementation;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class MapBasedDependencyCollection implements DependencyCollection {
-    private final Map<Class<?>, Dependency<?, ?>> dependencyMap = new HashMap<>();
+    private final @NotNull Map<Class<?>, Dependency<?, ?>> dependencyMap = new HashMap<>();
+    private final @NotNull List<Extension> extensionList = new ArrayList<>();
 
     @Override
     public @NotNull <I, Impl extends I> DependencyCollection addDependency(@NotNull Dependency<I, Impl> dependency) {
@@ -23,7 +25,43 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
     }
 
     @Override
-    public @NotNull ExtendedDependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException {
+    public @NotNull <E extends Extension> DependencyCollection extendWith(@NotNull E extension) {
+        extensionList.add(extension);
+        return this;
+    }
+
+    @Override
+    public @NotNull <E extends Extension> DependencyCollection extendWith(@NotNull E extension, @NotNull Consumer<@NotNull E> builder) {
+        extensionList.add(extension);
+        builder.accept(extension);
+        return this;
+    }
+
+    @Override
+    public @NotNull <E extends Extension> DependencyCollection extendWith(@NotNull Function<@NotNull DependencyCollection, @NotNull E> f) {
+        final var extension = f.apply(this);
+        extensionList.add(extension);
+        return this;
+    }
+
+    @Override
+    public @NotNull <E extends Extension> DependencyCollection extendWith(@NotNull Function<@NotNull DependencyCollection, @NotNull E> f, @NotNull Consumer<@NotNull E> builder) {
+        final var extension = f.apply(this);
+        extensionList.add(extension);
+        builder.accept(extension);
+        return this;
+    }
+
+    @Override
+    public @NotNull DependencyResolver build()
+            throws
+            MoreThanOneConstructorException,
+            AbstractImplementationException,
+            InterfaceImplementationException,
+            UnknownDependencyException,
+            PrivateOrProtectedConstructorException {
+        callExtensionsBeforeBuild();
+
         final var dependencyList = dependencyMap.values();
 
         for (final var dependency : dependencyList) {
@@ -36,7 +74,28 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
 
         }
 
-        return new ReflectionExtendedDependencyResolver(dependencyMap);
+        final var dependencyResolver = new ReflectionExtendedDependencyResolver(dependencyMap);
+
+        callExtensionsAfterBuild(dependencyResolver);
+        cleanExtensionList();
+
+        return dependencyResolver;
+    }
+
+    private void callExtensionsBeforeBuild() {
+        for (final var extension : extensionList) {
+            extension.beforeBuild();
+        }
+    }
+
+    private void callExtensionsAfterBuild(@NotNull DependencyResolver dependencyResolver) {
+        for (final var extension : extensionList) {
+            extension.afterBuild(dependencyResolver);
+        }
+    }
+
+    private void cleanExtensionList() {
+        extensionList.clear();
     }
 
     private void validateFunctionReferenceImplementations(@NotNull Implementation.FunctionReference<?, ?> implementation) {

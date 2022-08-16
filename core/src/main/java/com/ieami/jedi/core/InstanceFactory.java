@@ -2,6 +2,7 @@ package com.ieami.jedi.core;
 
 import com.ieami.jedi.dsl.DependencyResolver;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -10,7 +11,7 @@ import java.util.function.Function;
 
 public interface InstanceFactory {
 
-    <I> I create() throws InvocationTargetException, InstantiationException, IllegalAccessException;
+    <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
     final class TransientClassReferenceNonArgumentConstructorCall implements InstanceFactory {
         private final @NotNull Constructor<?> constructor;
@@ -20,7 +21,7 @@ public interface InstanceFactory {
         }
 
         @Override
-        public <I> I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        public <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
             @SuppressWarnings("unchecked") final var instance = (I) constructor.newInstance();
             return instance;
         }
@@ -38,7 +39,7 @@ public interface InstanceFactory {
         }
 
         @Override
-        public <I> I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        public <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
             final var parameterTypes = constructor.getParameterTypes();
             final var parameterCount = parameterTypes.length;
             final var parameters = new Object[parameterCount];
@@ -58,18 +59,18 @@ public interface InstanceFactory {
 
     final class TransientFunctionReferenceInstantiatorCall implements InstanceFactory {
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
-        private final @NotNull Function<DependencyResolver, ?> instantiator;
+        private final @NotNull Function<@NotNull DependencyResolver, ?> instantiator;
 
         public TransientFunctionReferenceInstantiatorCall(
                 @NotNull ExtendedDependencyResolver extendedDependencyResolver,
-                @NotNull Function<DependencyResolver, ?> instantiator
+                @NotNull Function<@NotNull DependencyResolver, ?> instantiator
         ) {
             this.extendedDependencyResolver = Objects.requireNonNull(extendedDependencyResolver, "dependencyResolver");
             this.instantiator = Objects.requireNonNull(instantiator, "instantiator");
         }
 
         @Override
-        public <I> I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        public <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
             @SuppressWarnings("unchecked") final var instance = (I) instantiator.apply(extendedDependencyResolver);
 
             return instance;

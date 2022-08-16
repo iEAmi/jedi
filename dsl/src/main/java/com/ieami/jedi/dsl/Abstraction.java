@@ -1,6 +1,7 @@
 package com.ieami.jedi.dsl;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -21,7 +22,7 @@ public final class Abstraction<I> {
     }
 
     public <Impl extends I> @NotNull Implementation<I, Impl> instantiateUsing(
-            @NotNull Function<DependencyResolver, Impl> instantiator
+            @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator
     ) {
         return new Implementation.FunctionReference.Default<>(this, instantiator);
     }

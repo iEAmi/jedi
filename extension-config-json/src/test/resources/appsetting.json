@@ -1,0 +1,6 @@
+{
+  "DatabaseConfig": {
+    "ConnectionString": "CONNECTION_STRING",
+    "MaxPool": 10
+  }
+}
