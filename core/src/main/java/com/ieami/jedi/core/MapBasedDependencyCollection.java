@@ -71,7 +71,8 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
                 validateClassReferenceImplementations((Implementation.ClassReference<?, ?>) implementation);
             else if (implementation instanceof Implementation.FunctionReference)
                 validateFunctionReferenceImplementations((Implementation.FunctionReference<?, ?>) implementation);
-
+            else if (implementation instanceof Implementation.InstanceReference)
+                validateInstanceReferenceImplementations((Implementation.InstanceReference<?, ?>) implementation);
         }
 
         final var dependencyResolver = new ReflectionExtendedDependencyResolver(dependencyMap);
@@ -99,6 +100,10 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
     }
 
     private void validateFunctionReferenceImplementations(@NotNull Implementation.FunctionReference<?, ?> implementation) {
+        // TODO
+    }
+
+    private void validateInstanceReferenceImplementations(@NotNull Implementation.InstanceReference<?, ?> implementation) {
         // TODO
     }
 

@@ -47,6 +47,9 @@ public final class ReflectionExtendedDependencyResolver implements ExtendedDepen
         if (implementation instanceof Implementation.FunctionReference)
             return createTransientFunctionReferenceInstanceFactory((Implementation.FunctionReference<?, ?>) implementation);
 
+        if (implementation instanceof Implementation.InstanceReference)
+            return createTransientInstanceReferenceInstanceFactory((Implementation.InstanceReference<?, ?>) implementation);
+
         // Never happened
         throw new IllegalStateException();
     }
@@ -58,6 +61,9 @@ public final class ReflectionExtendedDependencyResolver implements ExtendedDepen
 
         if (implementation instanceof Implementation.FunctionReference)
             return createSingletonFunctionReferenceInstanceFactory((Implementation.FunctionReference<?, ?>) implementation);
+
+        if (implementation instanceof Implementation.InstanceReference)
+            return createSingletonInstanceReferenceInstanceFactory((Implementation.InstanceReference<?, ?>) implementation);
 
         // Never happened
         throw new IllegalStateException();
@@ -83,6 +89,13 @@ public final class ReflectionExtendedDependencyResolver implements ExtendedDepen
         return new InstanceFactory.TransientFunctionReferenceInstantiatorCall(this, instantiator);
     }
 
+    private @NotNull InstanceFactory createTransientInstanceReferenceInstanceFactory(
+            @NotNull Implementation.InstanceReference<?, ?> implementation
+    ) {
+        final var instance = implementation.instance();
+        return new InstanceFactory.TransientInstanceReference(instance);
+    }
+
     private @NotNull InstanceFactory createSingletonFunctionReferenceInstanceFactory(
             @NotNull Implementation.FunctionReference<?, ?> implementation
     ) {
@@ -101,5 +114,12 @@ public final class ReflectionExtendedDependencyResolver implements ExtendedDepen
             return new InstanceFactory.SingletonClassReferenceNonArgumentConstructorCall(constructor);
 
         return new InstanceFactory.SingletonClassReferenceConstructorCall(this, constructor);
+    }
+
+    private @NotNull InstanceFactory createSingletonInstanceReferenceInstanceFactory(
+            @NotNull Implementation.InstanceReference<?, ?> implementation
+    ) {
+        final var instance = implementation.instance();
+        return new InstanceFactory.SingletonInstanceReference(instance);
     }
 }
