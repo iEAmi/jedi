@@ -91,6 +91,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonClassReferenceNonArgumentConstructorCall implements InstanceFactory {
         private final @NotNull Constructor<?> constructor;
         private @Nullable Object instanceCache = null;
@@ -111,6 +112,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonClassReferenceConstructorCall implements InstanceFactory {
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
         private final @NotNull Constructor<?> constructor;
@@ -150,6 +152,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonFunctionReferenceInstantiatorCall implements InstanceFactory {
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
         private final @NotNull Function<@NotNull DependencyResolver, ?> instantiator;
@@ -175,6 +178,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonInstanceReference implements InstanceFactory {
         private final @NotNull Object instance;
 
