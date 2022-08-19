@@ -37,6 +37,14 @@ public interface DependencyCollection {
 
     @NotNull DependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException;
 
+    default @NotNull DependencyResolver buildUnsafe() {
+        try {
+            return build();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     default <I, Impl extends I> @NotNull DependencyCollection addTransient(
             @NotNull Class<I> abstractionClass,
             @NotNull Class<Impl> implementationClass
@@ -55,6 +63,28 @@ public interface DependencyCollection {
         final var dependency = Abstraction.abstraction(abstractionClass)
                 .instantiateUsing(instantiator)
                 .asTransient();
+
+        return addDependency(dependency);
+    }
+
+    default <I, Impl extends I> @NotNull DependencyCollection addSingleton(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Class<Impl> implementationClass
+    ) {
+        final var dependency = Abstraction.abstraction(abstractionClass)
+                .implementedBy(implementationClass)
+                .asSingleton();
+
+        return addDependency(dependency);
+    }
+
+    default <I, Impl extends I> @NotNull DependencyCollection addSingleton(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator
+    ) {
+        final var dependency = Abstraction.abstraction(abstractionClass)
+                .instantiateUsing(instantiator)
+                .asSingleton();
 
         return addDependency(dependency);
     }
