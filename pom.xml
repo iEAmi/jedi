@@ -13,6 +13,7 @@
         <module>dsl</module>
         <module>extension-config</module>
         <module>extension-config-json</module>
+        <module>extension-long-running</module>
     </modules>
 
     <properties>

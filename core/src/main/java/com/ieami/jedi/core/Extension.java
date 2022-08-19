@@ -12,9 +12,9 @@ public abstract class Extension {
         this.dependencyCollection = Objects.requireNonNull(dependencyCollection, "dependencyCollection");
     }
 
-    void beforeBuild() {
+    protected void beforeBuild() {
     }
 
-    void afterBuild(@NotNull DependencyResolver dependencyResolver) {
+    protected void afterBuild(@NotNull DependencyResolver dependencyResolver) {
     }
 }
