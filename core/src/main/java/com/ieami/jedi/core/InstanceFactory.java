@@ -77,10 +77,21 @@ public interface InstanceFactory {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    final class TransientInstanceReference implements InstanceFactory {
+        private final @NotNull Object instance;
 
+        public TransientInstanceReference(@NotNull Object instance) {
+            this.instance = Objects.requireNonNull(instance, "instance");
+        }
+
+        @Override
+        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            @SuppressWarnings("unchecked") final var typedInstance = (I) instance;
+            return typedInstance;
+        }
+    }
+
+    // TODO: Consider using Proxy pattern
     final class SingletonClassReferenceNonArgumentConstructorCall implements InstanceFactory {
         private final @NotNull Constructor<?> constructor;
         private @Nullable Object instanceCache = null;
@@ -101,6 +112,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonClassReferenceConstructorCall implements InstanceFactory {
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
         private final @NotNull Constructor<?> constructor;
@@ -140,6 +152,7 @@ public interface InstanceFactory {
         }
     }
 
+    // TODO: Consider using Proxy pattern
     final class SingletonFunctionReferenceInstantiatorCall implements InstanceFactory {
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
         private final @NotNull Function<@NotNull DependencyResolver, ?> instantiator;
@@ -161,6 +174,21 @@ public interface InstanceFactory {
 
             @SuppressWarnings("unchecked") final var typedInstance = (I) this.instanceCache;
 
+            return typedInstance;
+        }
+    }
+
+    // TODO: Consider using Proxy pattern
+    final class SingletonInstanceReference implements InstanceFactory {
+        private final @NotNull Object instance;
+
+        public SingletonInstanceReference(@NotNull Object instance) {
+            this.instance = Objects.requireNonNull(instance, "instance");
+        }
+
+        @Override
+        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            @SuppressWarnings("unchecked") final var typedInstance = (I) instance;
             return typedInstance;
         }
     }

@@ -69,4 +69,28 @@ public interface Implementation<I, Impl extends I> {
             }
         }
     }
+
+    interface InstanceReference<I, Impl extends I> extends Implementation<I, Impl> {
+        @NotNull Impl instance();
+
+        final class Default<I, Impl extends I> implements InstanceReference<I, Impl> {
+            private final @NotNull Abstraction<I> abstraction;
+            private final @NotNull Impl instance;
+
+            public Default(@NotNull Abstraction<I> abstraction, @NotNull Impl instance) {
+                this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
+                this.instance = Objects.requireNonNull(instance, "instance");
+            }
+
+            @Override
+            public @NotNull Abstraction<I> abstraction() {
+                return abstraction;
+            }
+
+            @Override
+            public @NotNull Impl instance() {
+                return instance;
+            }
+        }
+    }
 }

@@ -27,6 +27,10 @@ public final class Abstraction<I> {
         return new Implementation.FunctionReference.Default<>(this, instantiator);
     }
 
+    public <Impl extends I> @NotNull Implementation<I, Impl> withInstance(@NotNull Impl instance) {
+        return new Implementation.InstanceReference.Default<>(this, instance);
+    }
+
     public @NotNull Class<I> getAbstractionClass() {
         return clazz;
     }

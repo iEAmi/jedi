@@ -67,6 +67,17 @@ public interface DependencyCollection {
         return addDependency(dependency);
     }
 
+    default <I, Impl extends I> @NotNull DependencyCollection addTransient(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Impl instance
+    ) {
+        final var dependency = Abstraction.abstraction(abstractionClass)
+                .withInstance(instance)
+                .asTransient();
+
+        return addDependency(dependency);
+    }
+
     default <I, Impl extends I> @NotNull DependencyCollection addSingleton(
             @NotNull Class<I> abstractionClass,
             @NotNull Class<Impl> implementationClass
@@ -84,6 +95,17 @@ public interface DependencyCollection {
     ) {
         final var dependency = Abstraction.abstraction(abstractionClass)
                 .instantiateUsing(instantiator)
+                .asSingleton();
+
+        return addDependency(dependency);
+    }
+
+    default <I, Impl extends I> @NotNull DependencyCollection addSingleton(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Impl instance
+    ) {
+        final var dependency = Abstraction.abstraction(abstractionClass)
+                .withInstance(instance)
                 .asSingleton();
 
         return addDependency(dependency);
