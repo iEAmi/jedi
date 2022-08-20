@@ -2,6 +2,7 @@ package com.ieami.jedi.extension.config;
 
 import com.ieami.jedi.core.DependencyCollection;
 import com.ieami.jedi.core.Extension;
+import com.ieami.jedi.core.exception.DuplicateDependencyException;
 import com.ieami.jedi.dsl.DependencyResolver;
 import com.ieami.jedi.extension.config.exception.DeserializationException;
 import org.jetbrains.annotations.NotNull;
@@ -17,11 +18,11 @@ public abstract class ConfigExtension<E extends ConfigExtension<E>> extends Exte
         this.configFileName = Objects.requireNonNull(configFileName, "configFileName");
     }
 
-    public <I> @NotNull E addConfig(@NotNull Class<I> bindToClass, @NotNull String key) throws NoSuchFieldException, DeserializationException {
+    public <I> @NotNull E addConfig(@NotNull Class<I> bindToClass, @NotNull String key) throws NoSuchFieldException, DeserializationException, DuplicateDependencyException {
         final var builderFunction = createBuilderFunction(bindToClass, key);
 
         // TODO: Consider using addSingleton instead of addTransient.
-        dependencyCollection.addTransient(bindToClass, builderFunction);
+        dependencyCollection.addSingleton(bindToClass, bindToClass, builderFunction);
 
         return self();
     }
@@ -29,7 +30,7 @@ public abstract class ConfigExtension<E extends ConfigExtension<E>> extends Exte
     public <I> @NotNull E addConfigUnsafe(@NotNull Class<I> bindToClass, @NotNull String key) {
         try {
             return addConfig(bindToClass, key);
-        } catch (NoSuchFieldException | DeserializationException e) {
+        } catch (NoSuchFieldException | DeserializationException | DuplicateDependencyException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,9 +1,10 @@
 package com.ieami.jedi.core;
 
+import com.ieami.jedi.dsl.Abstraction;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class SingletonFunctionReferenceInstantiatorCallTest {
+public final class CachedTransientFunctionReferenceInstantiatorCallTest {
 
     private interface TestService {
     }
@@ -16,11 +17,12 @@ public final class SingletonFunctionReferenceInstantiatorCallTest {
     @Test
     public void create_returns_same_instance_on_each_call() {
         final var depCollection = DependencyCollection.newDefault();
-        depCollection.addSingleton(TestService.class, TestServiceImpl.class);
+        depCollection.addSingletonUnsafe(TestService.class, TestServiceImpl.class);
 
         final var resolver = depCollection.buildUnsafe();
 
-        final var classRef = new InstanceFactory.SingletonFunctionReferenceInstantiatorCall((ExtendedDependencyResolver) resolver, dependencyResolver -> new TestServiceImpl());
+        final var abstraction = Abstraction.abstraction(TestService.class);
+        final var classRef = new InstanceFactory.CachedTransientFunctionReferenceInstantiatorCall<>(abstraction, (ExtendedDependencyResolver) resolver, dependencyResolver -> new TestServiceImpl());
 
         try {
             final var instance1 = classRef.<TestService>create();

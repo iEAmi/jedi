@@ -11,6 +11,10 @@ public interface Dependency<I, Impl extends I> {
         return implementation().abstraction().getAbstractionClass();
     }
 
+    default @NotNull Class<Impl> implementationClass() {
+        return implementation().implementationClass();
+    }
+
     final class Singleton<I, Impl extends I> implements Dependency<I, Impl> {
         private final @NotNull Implementation<I, Impl> implementation;
 
@@ -21,6 +25,19 @@ public interface Dependency<I, Impl extends I> {
         @Override
         public @NotNull Implementation<I, Impl> implementation() {
             return this.implementation;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final var singleton = (Singleton<?, ?>) o;
+            return implementation.equals(singleton.implementation);
+        }
+
+        @Override
+        public int hashCode() {
+            return implementation.hashCode();
         }
 
         @Override
@@ -39,6 +56,19 @@ public interface Dependency<I, Impl extends I> {
         @Override
         public @NotNull Implementation<I, Impl> implementation() {
             return this.implementation;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            final var that = (Transient<?, ?>) o;
+            return implementation.equals(that.implementation);
+        }
+
+        @Override
+        public int hashCode() {
+            return implementation.hashCode();
         }
 
         @Override

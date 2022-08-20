@@ -22,9 +22,10 @@ public final class Abstraction<I> {
     }
 
     public <Impl extends I> @NotNull Implementation<I, Impl> instantiateUsing(
+            @NotNull Class<Impl> implementationClass,
             @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator
     ) {
-        return new Implementation.FunctionReference.Default<>(this, instantiator);
+        return new Implementation.FunctionReference.Default<>(this, implementationClass, instantiator);
     }
 
     public <Impl extends I> @NotNull Implementation<I, Impl> withInstance(@NotNull Impl instance) {
@@ -33,6 +34,19 @@ public final class Abstraction<I> {
 
     public @NotNull Class<I> getAbstractionClass() {
         return clazz;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final var that = (Abstraction<?>) o;
+        return clazz.equals(that.clazz);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clazz);
     }
 
     @Override

@@ -10,17 +10,24 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class MapBasedDependencyCollection implements DependencyCollection {
-    private final @NotNull Map<Class<?>, Dependency<?, ?>> dependencyMap = new HashMap<>();
+    private final @NotNull Map<Class<?>, Set<Dependency<?, ?>>> dependencyMap = new HashMap<>();
     private final @NotNull List<Extension> extensionList = new ArrayList<>();
 
     @Override
-    public @NotNull <I, Impl extends I> DependencyCollection addDependency(@NotNull Dependency<I, Impl> dependency) {
+    public @NotNull <I, Impl extends I> DependencyCollection addDependency(@NotNull Dependency<I, Impl> dependency) throws DuplicateDependencyException {
         Objects.requireNonNull(dependency, "dependency");
 
+        guardAgainstDuplicateDependency(dependency);
+
         final var abstractionClass = dependency.abstractionClass();
-        dependencyMap.put(abstractionClass, dependency);
+
+        if (!dependencyMap.containsKey(abstractionClass))
+            dependencyMap.put(abstractionClass, new HashSet<>());
+
+        dependencyMap.get(abstractionClass).add(dependency);
         return this;
     }
 
@@ -62,7 +69,10 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
             PrivateOrProtectedConstructorException {
         callExtensionsBeforeBuild();
 
-        final var dependencyList = dependencyMap.values();
+        final var dependencyList = dependencyMap.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
         for (final var dependency : dependencyList) {
             final var implementation = dependency.implementation();
@@ -118,6 +128,16 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
         guardAgainstClassesWithUnknownArgument(implementationClass);
     }
 
+    private <Impl extends I, I> void guardAgainstDuplicateDependency(@NotNull Dependency<I, Impl> dependency) throws DuplicateDependencyException {
+        final var abstractionClass = dependency.abstractionClass();
+        if (!dependencyMap.containsKey(abstractionClass)) return;
+
+        final var implementation = dependency.implementation();
+        final var dependencies = dependencyMap.get(abstractionClass);
+        if (dependencies.stream().allMatch(dep -> dep.implementation().equals(implementation)))
+            throw new DuplicateDependencyException(dependency + " registered before");
+    }
+
     private void guardAgainstInterfaceImplementation(
             @NotNull Class<?> implementationClass
     ) throws InterfaceImplementationException {
@@ -152,8 +172,14 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
         final var parameterTypes = constructor.getParameterTypes();
 
         for (final var parameterType : parameterTypes) {
-            if (!dependencyMap.containsKey(parameterType))
-                throw new UnknownDependencyException(parameterType.getCanonicalName() + " is not registered as dependency, so this is un resolvable");
+            var exactParameterTypeToCheck = parameterType;
+
+            if (parameterType.isArray()) {
+                exactParameterTypeToCheck = parameterType.getComponentType();
+            }
+
+            if (!dependencyMap.containsKey(exactParameterTypeToCheck))
+                throw new UnknownDependencyException(parameterType.getCanonicalName() + " is not registered as dependency, so this is unresolvable");
         }
     }
 

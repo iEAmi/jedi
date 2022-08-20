@@ -9,6 +9,8 @@ import java.util.function.Function;
 public interface Implementation<I, Impl extends I> {
     @NotNull Abstraction<I> abstraction();
 
+    @NotNull Class<Impl> implementationClass();
+
     default @NotNull Dependency<I, Impl> asSingleton() {
         return new Dependency.Singleton<>(this);
     }
@@ -40,6 +42,19 @@ public interface Implementation<I, Impl extends I> {
             }
 
             @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                final var aDefault = (Default<?, ?>) o;
+                return implementationClass.equals(aDefault.implementationClass) && abstraction.equals(aDefault.abstraction);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(implementationClass, abstraction);
+            }
+
+            @Override
             public String toString() {
                 return this.implementationClass.getSimpleName() + " implements " + this.abstraction;
             }
@@ -51,10 +66,16 @@ public interface Implementation<I, Impl extends I> {
 
         final class Default<I, Impl extends I> implements FunctionReference<I, Impl> {
             private final @NotNull Abstraction<I> abstraction;
+            private final @NotNull Class<Impl> implementationClass;
             private final @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator;
 
-            Default(@NotNull Abstraction<I> abstraction, @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator) {
+            Default(
+                    @NotNull Abstraction<I> abstraction,
+                    @NotNull Class<Impl> implementationClass,
+                    @NotNull Function<@NotNull DependencyResolver, @Nullable Impl> instantiator
+            ) {
                 this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
+                this.implementationClass = Objects.requireNonNull(implementationClass, "implementationClass");
                 this.instantiator = Objects.requireNonNull(instantiator, "instantiator");
             }
 
@@ -66,6 +87,24 @@ public interface Implementation<I, Impl extends I> {
             @Override
             public @NotNull Abstraction<I> abstraction() {
                 return abstraction;
+            }
+
+            @Override
+            public @NotNull Class<Impl> implementationClass() {
+                return implementationClass;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                final var aDefault = (Default<?, ?>) o;
+                return abstraction.equals(aDefault.abstraction) && instantiator.equals(aDefault.instantiator);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(abstraction, instantiator);
             }
         }
     }
@@ -88,8 +127,28 @@ public interface Implementation<I, Impl extends I> {
             }
 
             @Override
+            public @NotNull Class<Impl> implementationClass() {
+                @SuppressWarnings("unchecked") final var clazz = (Class<Impl>) instance.getClass();
+
+                return clazz;
+            }
+
+            @Override
             public @NotNull Impl instance() {
                 return instance;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                final var aDefault = (Default<?, ?>) o;
+                return abstraction.equals(aDefault.abstraction) && instance.equals(aDefault.instance);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(abstraction, instance);
             }
         }
     }

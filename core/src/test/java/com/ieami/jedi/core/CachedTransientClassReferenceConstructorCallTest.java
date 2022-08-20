@@ -1,9 +1,12 @@
 package com.ieami.jedi.core;
 
+import com.ieami.jedi.dsl.Abstraction;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class SingletonClassReferenceConstructorCallTest {
+import java.lang.reflect.Constructor;
+
+public final class CachedTransientClassReferenceConstructorCallTest {
 
     private interface TestRepository {
     }
@@ -24,13 +27,15 @@ public final class SingletonClassReferenceConstructorCallTest {
     @Test
     public void create_returns_same_instance_on_each_call() {
         final var depCollection = DependencyCollection.newDefault();
-        depCollection.addTransient(TestRepository.class, TestRepositoryImpl.class);
-        depCollection.addSingleton(TestService.class, TestServiceImpl.class);
+        depCollection.addTransientUnsafe(TestRepository.class, TestRepositoryImpl.class);
+        depCollection.addSingletonUnsafe(TestService.class, TestServiceImpl.class);
 
         final var resolver = depCollection.buildUnsafe();
 
         final var constructor = TestServiceImpl.class.getConstructors()[0];
-        final var classRef = new InstanceFactory.SingletonClassReferenceConstructorCall((ExtendedDependencyResolver) resolver, constructor);
+        @SuppressWarnings("unchecked") final var typedConstructor = (Constructor<TestService>) constructor;
+        final var abstraction = Abstraction.abstraction(TestService.class);
+        final var classRef = new InstanceFactory.CachedTransientClassReferenceConstructorCall<>(abstraction, (ExtendedDependencyResolver) resolver, typedConstructor);
 
         try {
             final var instance1 = classRef.<TestService>create();

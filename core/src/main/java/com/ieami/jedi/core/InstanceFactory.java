@@ -1,6 +1,8 @@
 package com.ieami.jedi.core;
 
+import com.ieami.jedi.dsl.Abstraction;
 import com.ieami.jedi.dsl.DependencyResolver;
+import com.ieami.jedi.dsl.exception.MoreThanOneDependencyException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,141 +11,74 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.function.Function;
 
-public interface InstanceFactory {
+public interface InstanceFactory<I, Impl extends I> {
 
-    <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException;
+    @NotNull Abstraction<I> abstraction();
 
-    final class TransientClassReferenceNonArgumentConstructorCall implements InstanceFactory {
-        private final @NotNull Constructor<?> constructor;
+    default @NotNull Class<I> abstractionClass() {
+        return abstraction().getAbstractionClass();
+    }
 
-        public TransientClassReferenceNonArgumentConstructorCall(@NotNull Constructor<?> constructor) {
+    @Nullable Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException;
+
+    final class TransientClassReferenceNonArgumentConstructorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull Abstraction<I> abstraction;
+        private final @NotNull Constructor<Impl> constructor;
+
+        public TransientClassReferenceNonArgumentConstructorCall(
+                @NotNull Abstraction<I> abstraction,
+                @NotNull Constructor<Impl> constructor
+        ) {
+            this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
             this.constructor = Objects.requireNonNull(constructor, "constructor");
         }
 
         @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            @SuppressWarnings("unchecked") final var instance = (I) constructor.newInstance();
-            return instance;
+        public @NotNull Abstraction<I> abstraction() {
+            return this.abstraction;
+        }
+
+        @Override
+        public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            return constructor.newInstance();
         }
     }
 
-    final class TransientClassReferenceConstructorCall implements InstanceFactory {
-        private final ExtendedDependencyResolver extendedDependencyResolver;
-        private final Constructor<?> constructor;
+    final class TransientClassReferenceConstructorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull Abstraction<I> abstraction;
+        private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
+        private final @NotNull Constructor<Impl> constructor;
 
         public TransientClassReferenceConstructorCall(
+                @NotNull Abstraction<I> abstraction,
                 @NotNull ExtendedDependencyResolver extendedDependencyResolver,
-                @NotNull Constructor<?> constructor) {
+                @NotNull Constructor<Impl> constructor) {
+            this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
             this.extendedDependencyResolver = Objects.requireNonNull(extendedDependencyResolver, "dependencyResolver");
             this.constructor = Objects.requireNonNull(constructor, "constructor");
         }
 
         @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        public @NotNull Abstraction<I> abstraction() {
+            return this.abstraction;
+        }
+
+        @Override
+        public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException {
             final var parameterTypes = constructor.getParameterTypes();
             final var parameterCount = parameterTypes.length;
             final var parameters = new Object[parameterCount];
 
             for (var i = 0; i < parameterCount; i++) {
                 final var parameterType = parameterTypes[i];
-                final var parameterInstance = extendedDependencyResolver.resolveRequired(parameterType);
 
-                parameters[i] = parameterInstance;
-            }
+                final Object parameterInstance;
+                if (parameterType.isArray()) {
+                    final var d = parameterType.cast(extendedDependencyResolver.resolveAllRequired(parameterType.getComponentType()));
+                    parameterInstance = d;
+                } else
+                    parameterInstance = extendedDependencyResolver.resolveRequired(parameterType);
 
-            @SuppressWarnings("unchecked") final var instance = (I) constructor.newInstance(parameters);
-
-            return instance;
-        }
-    }
-
-    final class TransientFunctionReferenceInstantiatorCall implements InstanceFactory {
-        private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
-        private final @NotNull Function<@NotNull DependencyResolver, ?> instantiator;
-
-        public TransientFunctionReferenceInstantiatorCall(
-                @NotNull ExtendedDependencyResolver extendedDependencyResolver,
-                @NotNull Function<@NotNull DependencyResolver, ?> instantiator
-        ) {
-            this.extendedDependencyResolver = Objects.requireNonNull(extendedDependencyResolver, "dependencyResolver");
-            this.instantiator = Objects.requireNonNull(instantiator, "instantiator");
-        }
-
-        @Override
-        public <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            @SuppressWarnings("unchecked") final var instance = (I) instantiator.apply(extendedDependencyResolver);
-
-            return instance;
-        }
-    }
-
-    final class TransientInstanceReference implements InstanceFactory {
-        private final @NotNull Object instance;
-
-        public TransientInstanceReference(@NotNull Object instance) {
-            this.instance = Objects.requireNonNull(instance, "instance");
-        }
-
-        @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            @SuppressWarnings("unchecked") final var typedInstance = (I) instance;
-            return typedInstance;
-        }
-    }
-
-    // TODO: Consider using Proxy pattern
-    final class SingletonClassReferenceNonArgumentConstructorCall implements InstanceFactory {
-        private final @NotNull Constructor<?> constructor;
-        private @Nullable Object instanceCache = null;
-
-        public SingletonClassReferenceNonArgumentConstructorCall(@NotNull Constructor<?> constructor) {
-            this.constructor = Objects.requireNonNull(constructor, "constructor");
-        }
-
-        @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            if (this.instanceCache == null) {
-                this.instanceCache = constructor.newInstance();
-            }
-
-            @SuppressWarnings("unchecked") final var typedInstance = (I) this.instanceCache;
-
-            return typedInstance;
-        }
-    }
-
-    // TODO: Consider using Proxy pattern
-    final class SingletonClassReferenceConstructorCall implements InstanceFactory {
-        private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
-        private final @NotNull Constructor<?> constructor;
-        private @Nullable Object instanceCache = null;
-
-        public SingletonClassReferenceConstructorCall(
-                @NotNull ExtendedDependencyResolver extendedDependencyResolver,
-                @NotNull Constructor<?> constructor) {
-            this.extendedDependencyResolver = Objects.requireNonNull(extendedDependencyResolver, "dependencyResolver");
-            this.constructor = Objects.requireNonNull(constructor, "constructor");
-        }
-
-        @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            if (this.instanceCache == null) {
-                this.instanceCache = createInstance();
-            }
-
-            @SuppressWarnings("unchecked") final var typedInstance = (I) this.instanceCache;
-
-            return typedInstance;
-        }
-
-        private Object createInstance() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            final var parameterTypes = constructor.getParameterTypes();
-            final var parameterCount = parameterTypes.length;
-            final var parameters = new Object[parameterCount];
-
-            for (var i = 0; i < parameterCount; i++) {
-                final var parameterType = parameterTypes[i];
-                final var parameterInstance = extendedDependencyResolver.resolveRequired(parameterType);
 
                 parameters[i] = parameterInstance;
             }
@@ -152,44 +87,129 @@ public interface InstanceFactory {
         }
     }
 
-    // TODO: Consider using Proxy pattern
-    final class SingletonFunctionReferenceInstantiatorCall implements InstanceFactory {
+    final class TransientFunctionReferenceInstantiatorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull Abstraction<I> abstraction;
         private final @NotNull ExtendedDependencyResolver extendedDependencyResolver;
-        private final @NotNull Function<@NotNull DependencyResolver, ?> instantiator;
-        private @Nullable Object instanceCache = null;
+        private final @NotNull Function<@NotNull DependencyResolver, Impl> instantiator;
 
-        public SingletonFunctionReferenceInstantiatorCall(
+        public TransientFunctionReferenceInstantiatorCall(
+                @NotNull Abstraction<I> abstraction,
                 @NotNull ExtendedDependencyResolver extendedDependencyResolver,
-                @NotNull Function<@NotNull DependencyResolver, ?> instantiator
+                @NotNull Function<@NotNull DependencyResolver, Impl> instantiator
         ) {
+            this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
             this.extendedDependencyResolver = Objects.requireNonNull(extendedDependencyResolver, "dependencyResolver");
             this.instantiator = Objects.requireNonNull(instantiator, "instantiator");
         }
 
         @Override
-        public <I> @Nullable I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            if (this.instanceCache == null) {
-                this.instanceCache = instantiator.apply(extendedDependencyResolver);
-            }
+        public @NotNull Abstraction<I> abstraction() {
+            return this.abstraction;
+        }
 
-            @SuppressWarnings("unchecked") final var typedInstance = (I) this.instanceCache;
-
-            return typedInstance;
+        @Override
+        public @Nullable Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            return instantiator.apply(extendedDependencyResolver);
         }
     }
 
-    // TODO: Consider using Proxy pattern
-    final class SingletonInstanceReference implements InstanceFactory {
-        private final @NotNull Object instance;
+    final class InstanceReference<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull Abstraction<I> abstraction;
+        private final @NotNull Impl instance;
 
-        public SingletonInstanceReference(@NotNull Object instance) {
+        public InstanceReference(@NotNull Abstraction<I> abstraction, @NotNull Impl instance) {
+            this.abstraction = Objects.requireNonNull(abstraction, "abstraction");
             this.instance = Objects.requireNonNull(instance, "instance");
         }
 
         @Override
-        public <I> @NotNull I create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
-            @SuppressWarnings("unchecked") final var typedInstance = (I) instance;
-            return typedInstance;
+        public @NotNull Abstraction<I> abstraction() {
+            return this.abstraction;
+        }
+
+        @Override
+        public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            return instance;
+        }
+    }
+
+    final class CachedTransientClassReferenceNonArgumentConstructorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull TransientClassReferenceNonArgumentConstructorCall<I, Impl> instanceFactory;
+        private @Nullable Impl instanceCache = null;
+
+        public CachedTransientClassReferenceNonArgumentConstructorCall(
+                @NotNull Abstraction<I> abstraction,
+                @NotNull Constructor<Impl> constructor
+        ) {
+            this.instanceFactory = new TransientClassReferenceNonArgumentConstructorCall<>(abstraction, constructor);
+        }
+
+        @Override
+        public @NotNull Abstraction<I> abstraction() {
+            return instanceFactory.abstraction();
+        }
+
+        @Override
+        public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            if (this.instanceCache == null) {
+                this.instanceCache = instanceFactory.create();
+            }
+
+            return this.instanceCache;
+        }
+    }
+
+    final class CachedTransientClassReferenceConstructorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull TransientClassReferenceConstructorCall<I, Impl> instanceFactory;
+        private @Nullable Impl instanceCache = null;
+
+        public CachedTransientClassReferenceConstructorCall(
+                @NotNull Abstraction<I> abstraction,
+                @NotNull ExtendedDependencyResolver extendedDependencyResolver,
+                @NotNull Constructor<Impl> constructor
+        ) {
+            this.instanceFactory = new InstanceFactory.TransientClassReferenceConstructorCall<>(abstraction, extendedDependencyResolver, constructor);
+        }
+
+        @Override
+        public @NotNull Abstraction<I> abstraction() {
+            return this.instanceFactory.abstraction;
+        }
+
+        @Override
+        public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException {
+            if (this.instanceCache == null) {
+                this.instanceCache = this.instanceFactory.create();
+            }
+
+            return this.instanceCache;
+        }
+    }
+
+    final class CachedTransientFunctionReferenceInstantiatorCall<I, Impl extends I> implements InstanceFactory<I, Impl> {
+        private final @NotNull TransientFunctionReferenceInstantiatorCall<I, Impl> instanceFactory;
+        private @Nullable Impl instanceCache = null;
+
+        public CachedTransientFunctionReferenceInstantiatorCall(
+                @NotNull Abstraction<I> abstraction,
+                @NotNull ExtendedDependencyResolver extendedDependencyResolver,
+                @NotNull Function<@NotNull DependencyResolver, Impl> instantiator
+        ) {
+            this.instanceFactory = new TransientFunctionReferenceInstantiatorCall<>(abstraction, extendedDependencyResolver, instantiator);
+        }
+
+        @Override
+        public @NotNull Abstraction<I> abstraction() {
+            return this.instanceFactory.abstraction();
+        }
+
+        @Override
+        public @Nullable Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            if (this.instanceCache == null) {
+                this.instanceCache = instanceFactory.create();
+            }
+
+            return this.instanceCache;
         }
     }
 }
