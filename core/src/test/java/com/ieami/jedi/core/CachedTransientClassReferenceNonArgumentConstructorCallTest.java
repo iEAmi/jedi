@@ -1,9 +1,12 @@
 package com.ieami.jedi.core;
 
+import com.ieami.jedi.dsl.Abstraction;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class SingletonClassReferenceNonArgumentConstructorCallTest {
+import java.lang.reflect.Constructor;
+
+public final class CachedTransientClassReferenceNonArgumentConstructorCallTest {
 
     private static class TestService {
         public TestService() {
@@ -13,7 +16,9 @@ public final class SingletonClassReferenceNonArgumentConstructorCallTest {
     @Test
     public void create_returns_same_instance_on_each_call() {
         final var constructor = TestService.class.getConstructors()[0];
-        final var classRef = new InstanceFactory.SingletonClassReferenceNonArgumentConstructorCall(constructor);
+        @SuppressWarnings("unchecked") final var typedConstructor = (Constructor<TestService>) constructor;
+        final var abstraction = Abstraction.abstraction(TestService.class);
+        final var classRef = new InstanceFactory.CachedTransientClassReferenceNonArgumentConstructorCall<>(abstraction, typedConstructor);
 
         try {
             final var instance1 = classRef.<TestService>create();

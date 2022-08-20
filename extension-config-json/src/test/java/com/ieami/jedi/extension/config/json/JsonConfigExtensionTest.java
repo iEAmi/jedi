@@ -37,7 +37,7 @@ public final class JsonConfigExtensionTest {
 
             final var resolver = depCollection.build();
 
-            final var databaseConfig = resolver.resolve(DatabaseConfig.class);
+            final var databaseConfig = resolver.resolve(DatabaseConfig.class, DatabaseConfig.class);
 
             Assert.assertNotNull(databaseConfig);
             Assert.assertEquals("CONNECTION_STRING", databaseConfig.connectionString);

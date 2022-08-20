@@ -1,19 +1,20 @@
 package com.ieami.jedi.core;
 
 import com.ieami.jedi.dsl.DependencyResolver;
+import com.ieami.jedi.dsl.exception.MoreThanOneDependencyException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 public interface ExtendedDependencyResolver extends DependencyResolver {
 
-    <I> @Nullable I resolve(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException;
-
     @Override
-    default <I> @NotNull I resolveRequired(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        final var instance = resolve(abstractionClass);
+    default <I, Impl extends I> @NotNull Impl resolveRequired(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Class<Impl> implementationClass
+    ) throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException {
+        final var instance = resolve(abstractionClass, implementationClass);
         if (instance == null)
             throw new IllegalStateException(abstractionClass.getCanonicalName() + " is not registered as dependency");
 
@@ -21,8 +22,20 @@ public interface ExtendedDependencyResolver extends DependencyResolver {
     }
 
     @Override
-    default <I> @NotNull Optional<I> resolveOptional(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        final var instance = resolve(abstractionClass);
+    default <I, Impl extends I> @NotNull Optional<Impl> resolveOptional(
+            @NotNull Class<I> abstractionClass,
+            @NotNull Class<Impl> implementationClass
+    ) throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException {
+        final var instance = resolve(abstractionClass, implementationClass);
         return Optional.ofNullable(instance);
+    }
+
+    @Override
+    default <I> @NotNull I[] resolveAllRequired(@NotNull Class<I> abstractionClass) throws InvocationTargetException, InstantiationException, IllegalAccessException, MoreThanOneDependencyException {
+        final var instance = resolveAll(abstractionClass);
+        if (instance == null)
+            throw new IllegalStateException("nothing registered for " + abstractionClass.getCanonicalName());
+
+        return instance;
     }
 }
