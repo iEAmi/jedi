@@ -40,6 +40,7 @@ public interface InstanceFactory<I, Impl extends I> {
 
         @Override
         public @NotNull Impl create() throws InvocationTargetException, InstantiationException, IllegalAccessException {
+            constructor.setAccessible(true);
             return constructor.newInstance();
         }
     }

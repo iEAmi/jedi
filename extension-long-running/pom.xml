@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ieami.jedi.extension.longRunning</groupId>
-    <artifactId>extension-config-json</artifactId>
+    <artifactId>extension-long-running</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

@@ -66,7 +66,8 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
             AbstractImplementationException,
             InterfaceImplementationException,
             UnknownDependencyException,
-            PrivateOrProtectedConstructorException {
+            PrivateOrProtectedConstructorException,
+            ExtensionException {
         callExtensionsBeforeBuild();
 
         final var dependencyList = dependencyMap.values()
@@ -88,25 +89,20 @@ public final class MapBasedDependencyCollection implements DependencyCollection 
         final var dependencyResolver = new ReflectionExtendedDependencyResolver(dependencyMap);
 
         callExtensionsAfterBuild(dependencyResolver);
-        cleanExtensionList();
 
         return dependencyResolver;
     }
 
-    private void callExtensionsBeforeBuild() {
+    private void callExtensionsBeforeBuild() throws ExtensionException {
         for (final var extension : extensionList) {
             extension.beforeBuild();
         }
     }
 
-    private void callExtensionsAfterBuild(@NotNull DependencyResolver dependencyResolver) {
+    private void callExtensionsAfterBuild(@NotNull DependencyResolver dependencyResolver) throws ExtensionException {
         for (final var extension : extensionList) {
             extension.afterBuild(dependencyResolver);
         }
-    }
-
-    private void cleanExtensionList() {
-        extensionList.clear();
     }
 
     private void validateFunctionReferenceImplementations(@NotNull Implementation.FunctionReference<?, ?> implementation) {
