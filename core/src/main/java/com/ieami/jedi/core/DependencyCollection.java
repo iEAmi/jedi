@@ -35,7 +35,7 @@ public interface DependencyCollection {
     );
 
 
-    @NotNull DependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException;
+    @NotNull DependencyResolver build() throws MoreThanOneConstructorException, AbstractImplementationException, InterfaceImplementationException, UnknownDependencyException, PrivateOrProtectedConstructorException, ExtensionException;
 
     default @NotNull DependencyResolver buildUnsafe() {
         try {
