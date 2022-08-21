@@ -5,6 +5,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
 
+import java.util.HashMap;
+
 public final class ReflectionExtendedDependencyResolverTest {
 
     private interface TestRepository {
@@ -52,6 +54,36 @@ public final class ReflectionExtendedDependencyResolverTest {
     private static class CService {
         public CService(AService aService, BService bService) {
 
+        }
+    }
+
+    private interface GenericService<T> {
+        class _String implements GenericService<String> {
+            public _String() {
+            }
+        }
+
+        class _Integer implements GenericService<Integer> {
+            public _Integer() {
+            }
+        }
+
+        class _Long implements GenericService<Long> {
+            public _Long() {
+            }
+        }
+    }
+
+    private abstract static class AbstractGenericService<T> {
+    }
+
+    private static class IntegerAbstractGenericService extends AbstractGenericService<Integer> {
+        public IntegerAbstractGenericService() {
+        }
+    }
+
+    private static class IntegerStringHashMap extends HashMap<Integer, String> {
+        public IntegerStringHashMap() {
         }
     }
 
@@ -274,5 +306,43 @@ public final class ReflectionExtendedDependencyResolverTest {
         final var instance = depResolver.resolveUnsafe(CService.class);
 
         Assert.assertNotNull(instance);
+    }
+
+    @Test
+    public void resolveAll_returns_all_instances_for_generic_dependencies() {
+        final var depCollection = DependencyCollection.newDefault();
+        depCollection.addSingletonUnsafe(GenericService.class, GenericService._String.class);
+        depCollection.addSingletonUnsafe(GenericService.class, GenericService._Integer.class, dependencyResolver -> new GenericService._Integer());
+        depCollection.addSingletonUnsafe(GenericService.class, new GenericService._Long());
+        depCollection.addSingletonUnsafe(AbstractGenericService.class, IntegerAbstractGenericService.class);
+        depCollection.addSingletonUnsafe(HashMap.class, IntegerStringHashMap.class);
+        final var depResolver = depCollection.buildUnsafe();
+
+        final var genericServiceInstances = depResolver.resolveAllUnsafe(GenericService.class);
+        final var abstractGenericServiceInstances = depResolver.resolveAllUnsafe(AbstractGenericService.class);
+        final var hashmapInstances = depResolver.resolveAllUnsafe(HashMap.class);
+
+        Assert.assertEquals(3, genericServiceInstances.length);
+        Assert.assertEquals(1, abstractGenericServiceInstances.length);
+        Assert.assertEquals(1, hashmapInstances.length);
+    }
+
+    @Test
+    public void resolve_returns_particular_instance_with_generic_params() {
+        final var depCollection = DependencyCollection.newDefault();
+        depCollection.addSingletonUnsafe(GenericService.class, GenericService._String.class);
+        depCollection.addSingletonUnsafe(GenericService.class, GenericService._Integer.class, dependencyResolver -> new GenericService._Integer());
+        depCollection.addSingletonUnsafe(GenericService.class, new GenericService._Long());
+        depCollection.addSingletonUnsafe(AbstractGenericService.class, IntegerAbstractGenericService.class);
+        depCollection.addSingletonUnsafe(HashMap.class, IntegerStringHashMap.class);
+        final var depResolver = depCollection.buildUnsafe();
+
+        final var stringInstance = depResolver.resolveUnsafe(GenericService.class, GenericService._String.class);
+        final var integerInstance = depResolver.resolveUnsafe(GenericService.class, GenericService._Long.class);
+        final var longInstance = depResolver.resolveUnsafe(GenericService.class, GenericService._Integer.class);
+
+        Assert.assertNotNull(stringInstance);
+        Assert.assertNotNull(integerInstance);
+        Assert.assertNotNull(longInstance);
     }
 }
