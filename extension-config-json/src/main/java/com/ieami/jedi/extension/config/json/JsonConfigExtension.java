@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ieami.jedi.core.DependencyCollection;
 import com.ieami.jedi.dsl.DependencyResolver;
 import com.ieami.jedi.extension.config.ConfigExtension;
+import com.ieami.jedi.extension.config.exception.ConfigFileNotFoundException;
 import com.ieami.jedi.extension.config.exception.DeserializationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ public final class JsonConfigExtension extends ConfigExtension<JsonConfigExtensi
             @NotNull DependencyCollection dependencyCollection,
             @NotNull String configFileName,
             @NotNull ObjectMapper objectMapper
-    ) throws DeserializationException {
+    ) throws DeserializationException, ConfigFileNotFoundException {
         super(dependencyCollection, configFileName);
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.classLoader = Thread.currentThread().getContextClassLoader();
@@ -54,8 +55,10 @@ public final class JsonConfigExtension extends ConfigExtension<JsonConfigExtensi
         return this;
     }
 
-    private @NotNull JsonNode deserializeConfigFileContent(@NotNull String fileName) throws DeserializationException {
+    private @NotNull JsonNode deserializeConfigFileContent(@NotNull String fileName) throws DeserializationException, ConfigFileNotFoundException {
         try (final var stream = classLoader.getResourceAsStream(fileName)) {
+            if (stream == null)
+                throw new ConfigFileNotFoundException(fileName + " not found");
             try {
                 return objectMapper.readTree(stream);
             } catch (IOException e) {

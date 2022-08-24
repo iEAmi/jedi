@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ieami.jedi.core.DependencyCollection;
+import com.ieami.jedi.extension.config.exception.ConfigFileNotFoundException;
 import org.junit.Assert;
+import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 
 public final class JsonConfigExtensionTest {
 
@@ -24,8 +27,16 @@ public final class JsonConfigExtensionTest {
         }
     }
 
+    @Test
+    public void JsonConfigExtension_fails_fast_as_possible_if_config_file_not_found() {
+        final var depCollection = DependencyCollection.newDefault();
+        final ThrowingRunnable jsonConfigExtension = () -> new JsonConfigExtension(depCollection, "a.json", new ObjectMapper());
+
+        Assert.assertThrows(ConfigFileNotFoundException.class, jsonConfigExtension);
+    }
+
     @org.junit.Test
-    public void syntaxTest() {
+    public void addConfig_register_config_model_as_singleton() {
         try {
             final var depCollection = DependencyCollection.newDefault();
             final var objectMapper = new ObjectMapper();
