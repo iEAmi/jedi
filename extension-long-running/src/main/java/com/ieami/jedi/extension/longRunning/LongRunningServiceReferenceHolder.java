@@ -28,7 +28,7 @@ interface LongRunningServiceReferenceHolder {
 
         @Override
         public void start(@NotNull DependencyResolver dependencyResolver) throws InvocationTargetException, MoreThanOneDependencyException, InstantiationException, IllegalAccessException {
-            final var runnable = dependencyResolver.resolveRequired(Runnable.class, implementationClass);
+            final var runnable = dependencyResolver.resolveRequired(implementationClass);
 
             this.executorService.execute(runnable);
         }

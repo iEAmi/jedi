@@ -24,7 +24,7 @@ public final class LongRunningServiceExtension extends Extension implements Runn
             @NotNull ExecutorService executeOn
     ) throws DuplicateDependencyException {
         final var referenceHolder = new LongRunningServiceReferenceHolder.Default(executeOn, implementationClass);
-        dependencyCollection.addSingleton(Runnable.class, implementationClass);
+        dependencyCollection.addSingleton(implementationClass);
         dependencyCollection.addSingleton(LongRunningServiceReferenceHolder.class, referenceHolder);
         return this;
     }
