@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ieami.jedi.extension.longRunning</groupId>
-    <artifactId>extension-long-running</artifactId>
+    <artifactId>extension-long-running-service</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
