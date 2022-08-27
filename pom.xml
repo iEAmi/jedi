@@ -16,6 +16,7 @@
         <module>extension-long-running</module>
         <module>extension-scheduled-service</module>
         <module>extension-config-properties</module>
+        <module>extension-http-listener</module>
     </modules>
 
     <properties>
