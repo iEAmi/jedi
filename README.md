@@ -88,9 +88,10 @@ depCollection.extendWith(jsonConfigExtension, extension -> {
 
 There are usefull extension :
 * [Read json config](extension-config-json) reading json file and bind to POJO classes. supports Jackson annotations
-* [Read java properties config](extension-config-properties) reading java properties file and bind to POJO classes. supports Jackson annotations
-* [Background service](extension-long-running) running service in background on dedicate thread.
-* [Scheduled Service](extension-scheduled-service) schedule a function to invoked priodically 
+* [Read java properties config](extension-config-properties) reading java properties file and bind to POJO classes.
+  supports Jackson annotations
+* [Background service](extension-long-running-service) running service in background on dedicate thread.
+* [Scheduled Service](extension-scheduled-service) schedule a function to invoked priodically
 
 See each module for more details.
 
